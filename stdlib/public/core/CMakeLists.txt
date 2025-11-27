@@ -254,6 +254,7 @@ split_embedded_sources(
     NORMAL VarArgs.swift
   EMBEDDED Zip.swift
     NORMAL "${SWIFT_SOURCE_DIR}/stdlib/linker-support/magic-symbols-for-install-name.c"
+  EMBEDDED stdlib_mods.swift
   )
 
 split_embedded_sources(

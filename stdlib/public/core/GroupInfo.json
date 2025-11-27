@@ -1,4 +1,7 @@
 {
+  "Mods": [
+  	"stdlib_mods.swift"
+  ],
   "Assert": [
     "Assert.swift",
     "AssertCommon.swift"

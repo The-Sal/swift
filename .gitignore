@@ -101,3 +101,4 @@ Runtimes/**/*.modulemap
 Runtimes/**/*.in
 !Runtimes/**/*.cmake.in
 !Runtimes/**/CMakeConfig.h.in
+swift/lib/Localization/Immediate/*
