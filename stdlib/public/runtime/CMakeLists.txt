@@ -32,6 +32,7 @@ set(swift_runtime_objc_sources
 
 set(swift_runtime_sources
     ../CompatibilityOverride/CompatibilityOverride.cpp
+	playAudio.cpp
     AnyHashableSupport.cpp
     Array.cpp
     AutoDiffSupport.cpp

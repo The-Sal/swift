@@ -119,9 +119,131 @@ because that would make me:
 
 Also wtf is this build system its literally the call tree CLion -> baash -> bash -> cmake -> ninja -> Python -> swift-frontend ???
 
-*/
+– Day2:
+– first thing is that day 2 isnt going to do a lot of anything because im sleepy but I did decide there no such this as 'too much' complexity so I opened
+pandoras box that is lib/AST/ and started reading through some of the cpp and I must say.... not that bad..... although I've only read a few files so far
+and I dont get all the CPP magic but not the worse thing ever like for example I read lib/AST/TypeWalker.cpp and I was like I get this
+lowkey like understood what its doing its purpose and made a note to rmbr this file anytime we implement our own custom types later down the line but yea
+not too shabby plus with a little help from GPT-OSS20B of all things got it pretty well. Also I have learned a few things about this traverser
+firstly its so like funny the patterns it has it has a callback for pre-walk and post-walk which you can customise with an override and thats so funny
+to me its like idk so normal but interestingly this means all this checking can be uh 'linieant' for my custom type implementaetions cuz like.... I can just
+tell it maybe dont look too deeply at this type trust in the programmer. also doesnt break the other types bc its specific for this type ykwim? And also I think I know
+how I'd do multi inheritence now with swift I THINK. Here me out:
+* Every type is just a C++ type right? Like Ints are deepdown cpp like to the compiler there a 'Cpp–Int' somewhere that it checks against right
+* If I made a type called MagicInheritor right and its constructor took an array of pointers of whatever the CPP representation of 'classes' are
+* then whenver Swift code calls a function in the 'classes abstract cpp definition' we can just have a conditional thats like if this is a MagicInheritor subclass
+* call a function of the CPP MagicInheritor with the name of the function  and it will return a pointer to the correct function in the correct class
+like imagine
 
 
+// imagine this was C++ instead of swift-like for the sake of argument
+class MagicInheritor {
+  init(parents: [CppClassPointers]) { ... }
+  func requestPointer(attributeName: String) -> CppPointer {}
+}
+
+and within swift you would do something like
+class MyClass: MagicInheritor {
+  init() {
+    super.init(parents: [ThisSwiftClass(), AnotherSwiftClass(), ...]) // () -> for pointers
+    self.callFunctionOfAnotherSwift()
+  }
+}
+
+and under the good you would have
+callFunctionOfAnotherSwift() -> Abstract CPP class (part of swift) -> if MagicInheritor -> requestPointer("callFunctionOfAnotherSwift") -> get pointer to AnotherSwiftClass.callFunctionOfAnotherSwift() -> execute
+And boom cuz here's the thing everything the compiler does is high-key opt-in like swift isn't magically safe god-fearing code thats just what the devs for the IntCpp-Version and what not
+I can just tell the compiler 'hey this MagicInheritor is special trust me dont look too deep' and then boom problem solved. Now does this technically mean that possibly every single MagicInheritor
+class if you make a type in the method call the compiler wont catch it and you will run into a segfault at runtime.... the asnwer is... yes. BUT like dont be stupid. Also at some point ill figure out
+how to fix that problem and make the compiler really 'check' these things but for now this would work and make multi-inheritence possible in swift which is cool as fuck. ALSO diamond problem
+easy solution just dont deal with it... each sub-class is containerised as it's own little thing that you can talk to so memory wise you have
+
+––––––––––––––––––-CLASS A––––––––––––––––––––––
+Methods:
+Functions:
+Attrs:
+BaseClasses: [Protocol 1, OneRealClass]
+
+––––––––––––––––––-CLASS B––––––––––––––––––––––
+Methods:
+Functions:
+Attrs:
+BaseClasses: [Protocol 2, OneRealClass] (these are pointers btw)
+
+––––––––––––––––––-CLASS C – with Multi––––––––––––––––––––––
+Methods:
+Functions:
+Attrs:
+BaseClasses[MultiPtr]
+
+––––––––––– MultiPtr ––––––––––––––
+array = [
+class_a_OneRealClass_ptr
+class_b_OneRealClass_ptr
+]
+
+Now can it cross contaminate?  idts because once we handoff to class_a_OneRealClass_ptr every thing that you wrote
+after that is to that pointer outside our scope wait unless class_a_OneRealClass_ptr modifies a type which you override......
+actually no fuck you no over-riding types. And theoretically since they could have the same functions both classes then
+one will always be called first and yk what to solve this problem when MagicInheritor does init it will build a map
+of all the functions and if theres overlap fatalError() cuz whyre u being like this yk what real composition is bringing
+things that are seperate together not merging just stop being a weirdo.  Then ofc theres the meta issue
+of MagicInheritor(MagicInheritored–Class) which btw thats imo just throwing a compiler error liek when it does the visit
+thing its going to check if the MagicInheritor is being init-ed by another MagicInheritor and this is pretty easy since
+MagicInheritor erases the underlying type since from Swift-POV its just once class MagicInheritor and internally
+has pointer blackmagic so if we check with a cast or smthn if the init type is MagicInheritor and just fatalError saying
+fuck you that should be dandy WAIT I JUST SOLVED IT I HAD AN AMAZING IDEA OF HOW TO DO MAGIC INHREITOR ON MAGIC INHERITOR CLASSSES
+AND A BUNCH OF OTHER THINGS OKAY:
+
+TLDR: if you init MagicInheritor with another MagicInheritor it will copy over the internal pointers from the child (the one being passed in)
+and append them to its own array of pointers this way you can have MagicInheritor of MagicInheritor of MagicInheritor and then
+because we are responsible devs just deallocate the child inheritor class pointer from memoery so its kinda like eating its child.
+Now overriding I think I have a solution for that too basically when the swift compiler see the overide
+keyowrd right it checks if the subclass (usually the one like NSObject) has that function right which means its
+another from compiler pov walking up the inheritence usually just by 1 right and so we just habe the MagicInheritor
+when it gets probed for override it just returns true, and then during rumtime if you lied and said override
+and no sub-classes have it then boom fatalError but you can now override. And what we're going to do when you do
+override MagicInheritor will take that function and store it and then go down to the 'original' class pointer
+and replace the 'real' pointer to your function something like this
+
+class MyClass {
+public:
+    virtual void x() { /* original implementation */ }
+};
+
+// Your replacement function
+void b(MyClass* thisPtr) { /* new implementation */ }
+
+// Access and modify vtable
+MyClass* pointerClass = new MyClass();
+void*** vtable = reinterpret_cast<void***>(pointerClass);
+vtable[0][0] = reinterpret_cast<void*>(&b); // Modify first virtual function
+
+and then we keep an internal pointer to the original function within MagicInheritor so if you want to call super.x() it just calls that pointer. BOOM PROBLEM SOLVED MULTI-INHERITENCE IN SWIFT. To summarise
+MagicInheritor will support:
+Arbitrary number of subclasses
+Overriding functions, methods, attributes
+Calling super.method() from overridden methods
+You can do MagicInheritor of MagicInheritor
+
+No diamond problem because idw, Like on a serious note CPP is running underneath all that Swift like looking
+at the stdlib its Cpp being called underneath so like inside cpp we can do all the magic runtime stuff and all whatever
+we want and then just expose enough to swift and then lie enough to the compiler to make it a functional MACH–O file once
+we are in runtime whats stopping our cpp class from dowing whatever we want really? like playAudio() stdlib func thats
+a real stdlib function I added whats stopping that from idk starting threads making network request by tunnelling through cpp?
+ */
+
+@_silgen_name("playAudio")
+@inlinable
+public func playAudio(_ filePath: UnsafePointer<CChar>)
+
+@inlinable
+public func playSound(filePath: String) {
+  filePath.withCString {
+    cString in
+    playAudio(cString)
+  }
+}
 
 @inlinable
 public func turbo() -> Bool{

@@ -1,0 +1,10 @@
+[
+  {
+    "label": "Fast Build Swiftc",
+    "command": "cd $ZED_WORKTREE_ROOT && sh fast-build.sh"
+  },
+  {
+    "label": "Open in Terminal",
+    "command": "cd $ZED_WORKTREE_ROOT && open . -a Terminal"
+  }
+]

@@ -31,3 +31,5 @@ if myMagicValue{
 
 let turboClass = TurboClass()
 print("TurboClass is Turbo Enabled: \(turboClass.isTurboEnabled())")
+
+print(playAudio)
