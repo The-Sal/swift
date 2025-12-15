@@ -32,4 +32,9 @@ if myMagicValue{
 let turboClass = TurboClass()
 print("TurboClass is Turbo Enabled: \(turboClass.isTurboEnabled())")
 
-print(playAudio)
+playAudio("/Users/Salman/Projects/PycharmProjects/MusicGrabber/MusicGrabberDevProject/Downloads/overdrive.mp3")
+
+for s in 1...3{
+  sleep(1)
+  print("Sleeping for \(s)")
+}

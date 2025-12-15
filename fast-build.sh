@@ -18,16 +18,16 @@ export SCCACHE_CACHE_SIZE="50G"
 #
  cd $SWIFT_BUILD_DIR
  ninja swift-stdlib && nativenotifier "Swift stdlib build completed successfully" && cd $CWD && \
- # Compile y
- # our test with custom stdlib
-   /Volumes/fSTORAGE/STORED/SwiftCompilerBuild/Ninja-RelWithDebInfoAssert/swift-macosx-arm64/bin/swiftc \
-   -Onone \
-   -resource-dir /Volumes/fSTORAGE/STORED/SwiftCompilerBuild/Ninja-RelWithDebInfoAssert/swift-macosx-arm64/lib/swift \
-   -sdk /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk \
-   -Xlinker -rpath -Xlinker /Volumes/fSTORAGE/STORED/SwiftCompilerBuild/Ninja-RelWithDebInfoAssert/swift-macosx-arm64/lib/swift/macosx \
-   ./test_files/*.swift -o ./test_files/a.out &&
-   DYLD_LIBRARY_PATH=/Volumes/fSTORAGE/STORED/SwiftCompilerBuild/Ninja-RelWithDebInfoAssert/swift-macosx-arm64/lib/swift/macosx \
-                                                   ./test_files/a.out
+# Compile y
+  # our test with custom stdlib
+    /Users/Salman/Projects/CLionProjects/build/Ninja-RelWithDebInfoAssert/swift-macosx-arm64/bin/swiftc \
+    -Onone \
+    -resource-dir /Users/Salman/Projects/CLionProjects/build/Ninja-RelWithDebInfoAssert/swift-macosx-arm64/lib/swift \
+    -sdk /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk \
+    -Xlinker -rpath -Xlinker /Users/Salman/Projects/CLionProjects/build/Ninja-RelWithDebInfoAssert/swift-macosx-arm64/lib/swift/macosx \
+    ./test_files/*.swift -o ./test_files/a.out &&
+    DYLD_LIBRARY_PATH=/Users/Salman/Projects/CLionProjects/build/Ninja-RelWithDebInfoAssert/swift-macosx-arm64/lib/swift/macosx \
+                                                    ./test_files/a.out
 
 
 

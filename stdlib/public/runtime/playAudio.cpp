@@ -1,9 +1,10 @@
-#include "string"
 #include "dlfcn.h"
 #include <filesystem>
 #include <iostream>
+#include "swift/shims/Visibility.h"
 
-extern "C" void playAudio(const char* filePath) {
+// DO NOT ACCEPT THE IDEA of adding static that will break compilation
+SWIFT_RUNTIME_STDLIB_API void playAudio(const char* filePath) {
   std::cout << "Attempting to play: " << filePath << std::endl;
   std::filesystem::path file{filePath};
 
@@ -30,5 +31,3 @@ extern "C" void playAudio(const char* filePath) {
   playAudioFunc(filePath);
   dlclose(handle);
 }
-
-
